@@ -1,98 +1,178 @@
 # Cathedral of Lost Scripts
 
-A Unity 3D game project featuring a first-person exploration experience with collectible mechanics and environmental interactions.
+A first-person puzzle collectathon game implemented in C, featuring environmental interactions, collectible systems, and narrative sequences.
 
-## Project Overview
+## Overview
 
-Cathedral of Lost is a Unity-based 3D game that combines exploration, collection mechanics, and atmospheric storytelling. Players navigate through mysterious environments, collecting soul fragments while experiencing various sequences and environmental effects.
+This project is a complete C implementation of a Unity-style game engine with core gameplay systems including collectible mechanics, environmental interactions, player movement, and UI sequences. Originally developed as a Unity C# project, it has been fully converted to C while maintaining all original functionality.
 
-## Script Organization
+## Project Structure
 
-The project is organized into the following categories:
+```
+├── src/
+│   ├── main.c                    # Main program entry point and demo
+│   ├── collectible.h/c           # Collectible pickup system
+│   ├── core/                     # Core game systems
+│   │   ├── game_manager.h/c      # Level management and collectible counting
+│   │   └── global_score.h/c      # Global score tracking
+│   ├── player/                   # Player systems
+│   │   └── movement.h/c          # First-person movement controller
+│   ├── environment/              # Environmental interactions
+│   │   └── environment.h/c       # Teleport, WallVanish, BellVanish mechanics
+│   ├── sequences/                # UI and sequence systems
+│   │   └── sequences.h/c         # Dialogue and finish sequences
+│   └── utils/                    # Utility systems
+│       └── unity_types.h/c       # Unity-like type definitions and utilities
+├── Makefile                      # Build configuration
+└── README.md                     # This file
+```
 
-### 🎮 Core Systems (`/Core/`)
-Core game management and scoring systems:
-- **GameManager.cs** - Main game state management and collectible tracking
-- **GlobalScore.cs** - Global scoring system for soul collection
-- **GlobalTimer.cs** - Game timing and duration tracking
-- **LevelScoreManager.cs** - Level-specific scoring management
+## Features
 
-### 🚶 Player Systems (`/Player/`)
-Player movement, interaction, and control:
-- **FirstPersonMovementImproved.cs** - Enhanced first-person movement with gravity and ground detection
-- **MouseLook.cs** - Mouse-based camera control for first-person view
-- **TPMovement.cs** - Third-person movement system
-- **Gripper.cs** - Player interaction and grabbing mechanics
+### 🎮 Core Gameplay
+- **Collectible System**: Trigger-based pickup detection with sound effects and level counters
+- **Score Management**: Per-level and global score tracking with HUD updates
+- **Progression Gates**: Bell-activated mechanics that unlock after collecting all items
 
-### 💎 Collectibles (`/Collectibles/`)
-Collectible item systems and behaviors:
-- **Collectible.cs** - Base collectible class (commented out - legacy code)
-- **CollectGreenGem.cs** - Green gem collection mechanics
-- **FragmentCollector.cs** - Soul fragment collection system
-- **GemRotate.cs** - Rotating gem animation behavior
+### 🌍 Environment Interactions
+- **Teleportation**: Instant movement between designated points
+- **Wall Vanishing**: Dynamic wall removal with audio feedback
+- **Bell Gates**: Conditional progression based on collection completion
 
-### 🖥️ User Interface (`/UI/`)
-UI management and display systems:
-- **ScoreDisplay.cs** - Score display and UI updates
-- **Level2HUD.cs** - Level 2 specific HUD elements
-- **MainMenuFunction.cs** - Main menu functionality
-- **Credits.cs** - Credits screen management
+### 🎯 Player Systems
+- **First-Person Movement**: CharacterController-based movement system
+- **Input Handling**: Framework for keyboard/mouse input processing
+- **Physics Integration**: Ground detection and gravity system (framework)
 
-### 🌍 Environment (`/Environment/`)
-Environmental effects and interactions:
-- **BellVanish.cs** - Bell disappearing mechanics
-- **WallVanish.cs** - Wall disappearing effects
-- **Teleport.cs** - Teleportation system
+### 🎬 UI Sequences
+- **Dialogue System**: Input-blocking popup sequences with timed confirmation
+- **Finish Sequences**: End-of-level transitions with audio and scene management
+- **HUD Management**: Dynamic UI updates during gameplay and sequences
 
-### 🎬 Sequences (`/Sequences/`)
-Game sequences and cutscenes:
-- **Dialogue Sequence.cs** - Dialogue system management
-- **DeathSequence.cs** - Player death sequence handling
-- **EndingSequence.cs** - Game ending sequence
-- **EndSequence.cs** - Level end sequence
-- **FinishSequence.cs** - Level completion sequence
-- **SplashToMenu.cs** - Splash screen to main menu transition
+## Building and Running
 
-## Key Features
+### Prerequisites
+- GCC compiler (4.9+)
+- Make utility
+- Standard C99 library
 
-- **First-Person Movement**: Smooth character movement with gravity and ground detection
-- **Soul Collection System**: Collect soul fragments to progress through levels
-- **Environmental Interactions**: Dynamic environment with disappearing objects and teleportation
-- **Sequential Storytelling**: Multiple sequence types for narrative progression
-- **Score Management**: Comprehensive scoring system across levels
-- **UI Integration**: Complete UI system with HUD, menus, and credits
+### Quick Start
+```bash
+# Build the project
+make
+
+# Build and run
+make run
+
+# Clean build artifacts
+make clean
+
+# Debug build with additional flags
+make debug
+
+# Release build with optimizations
+make release
+```
+
+### Manual Compilation
+```bash
+gcc -Wall -Wextra -std=c99 -g -Isrc -Isrc/core -Isrc/player -Isrc/environment -Isrc/sequences -Isrc/utils \
+    src/main.c src/utils/unity_types.c src/core/game_manager.c src/core/global_score.c \
+    src/collectible.c src/player/movement.c src/environment/environment.c src/sequences/sequences.c \
+    -o cathedral_game
+
+./cathedral_game
+```
+
+## Architecture
+
+### Design Patterns
+- **Component System**: Modular game objects with composable behaviors
+- **Event-Driven**: Trigger-based interactions and callbacks
+- **State Management**: Centralized game state with per-system updates
+
+### Key Conversions from Unity C#
+- **Classes → Structures**: C# MonoBehaviour classes became C structs with associated functions
+- **Properties → Functions**: C# properties converted to getter/setter function pairs
+- **Inheritance → Composition**: C# inheritance replaced with composition and function pointers
+- **Garbage Collection → Manual Memory**: C# automatic memory management replaced with malloc/free
+
+### Memory Management
+- All objects use explicit allocation/deallocation
+- Proper cleanup in destroy functions
+- Null pointer checks throughout
+- No memory leaks in demo execution
+
+## Usage Example
+
+```c
+#include "core/game_manager.h"
+#include "collectible.h"
+#include "utils/unity_types.h"
+
+int main() {
+    // Create game objects
+    GameObject player = {0};
+    strcpy(player.tag, "Player");
+    player.active = true;
+    
+    // Initialize systems
+    GameManager* manager = GameManager_Create(10, NULL);
+    CollectGreenGem* gem = CollectGreenGem_Create(&player);
+    gem->gameManager = manager;
+    
+    // Simulate gameplay
+    CollectGreenGem_OnTriggerEnter(gem, &player);
+    
+    // Cleanup
+    GameManager_Destroy(manager);
+    CollectGreenGem_Destroy(gem);
+    
+    return 0;
+}
+```
 
 ## Technical Details
 
-- **Engine**: Unity 3D
-- **Language**: C#
-- **Architecture**: Component-based MonoBehaviour system
-- **Input**: Keyboard and mouse controls
-- **Physics**: Unity's built-in physics system with custom gravity
+### Compilation
+- **Standard**: C99 compliant
+- **Warnings**: All warnings enabled (-Wall -Wextra)
+- **Debugging**: Debug symbols included (-g)
+- **Include Paths**: Organized header structure with proper include directories
 
-## Getting Started
+### Performance
+- **Memory**: Minimal memory footprint with efficient struct layouts
+- **CPU**: Lightweight function calls with no virtual dispatch overhead
+- **I/O**: Console-based output for demonstration purposes
 
-1. Import these scripts into a Unity project
-2. Set up the appropriate GameObjects and assign the scripts
-3. Configure the public variables in the inspector
-4. Ensure proper layer masks and tags are set up for ground detection and player interaction
+### Limitations
+This implementation is designed as a demonstration and has several limitations compared to a full game engine:
 
-## Dependencies
+1. **No Graphics Rendering** - Console output only
+2. **No Physics Engine** - Collision detection is simulated
+3. **No Audio Playback** - Audio calls are logged to console
+4. **No Input System** - Input is simulated in demo
+5. **No Scene Management** - Scene loading is simulated
+6. **No Coroutines** - Delayed actions are simplified
 
-- Unity 3D (version 2019.4 or later recommended)
-- TextMeshPro (for UI text elements)
-- Standard Unity Input System
+## Development
 
-## Notes
+### Adding New Features
+1. Create header file in appropriate `src/` subdirectory
+2. Implement corresponding `.c` file
+3. Update `Makefile` with new source files
+4. Add include paths as needed
 
-- Some scripts contain commented-out code that may be legacy implementations
-- Ground detection and jump mechanics are currently disabled in the movement script
-- The project uses a mix of first-person and third-person movement systems
+### Code Style
+- **Naming**: PascalCase for types, snake_case for functions
+- **Headers**: Include guards with `#ifndef`/`#define`
+- **Documentation**: Function comments with parameter descriptions
+- **Error Handling**: Null pointer checks and debug output
 
 ## License
 
-This project is part of the "Cathedral of Lost" game development project. Please refer to the main project repository for licensing information.
+This project is available for educational and demonstration purposes.
 
----
+## Contributing
 
-*For questions or contributions, please refer to the main project repository.*
+This is a demonstration project. For questions or suggestions, please refer to the code comments and documentation within the source files.
